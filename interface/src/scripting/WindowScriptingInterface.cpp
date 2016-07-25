@@ -69,6 +69,25 @@ QScriptValue WindowScriptingInterface::hasFocus() {
     return qApp->hasFocus();
 }
 
+void WindowScriptingInterface::takeSnapshot() {
+    // it is evil to call takeSnapshot from just any thread.
+    qApp->postLambdaEvent([] {
+        qApp->takeSnapshot();
+    });
+}
+
+void WindowScriptingInterface::prepareForSelfie() {
+    qApp->postLambdaEvent([] {
+        qApp->prepareForSelfie();
+    });
+}
+
+void WindowScriptingInterface::takeSelfie() {
+    qApp->postLambdaEvent([] {
+        qApp->takeSelfie();
+    });
+}
+
 void WindowScriptingInterface::setFocus() {
     // It's forbidden to call focus() from another thread.
     qApp->postLambdaEvent([] {

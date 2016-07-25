@@ -30,6 +30,6 @@ void NullDisplayPlugin::submitOverlayTexture(const gpu::TexturePointer& overlayT
     _container->releaseOverlayTexture(overlayTexture);
 }
 
-QImage NullDisplayPlugin::getScreenshot() const {
+QImage NullDisplayPlugin::getScreenshot(bool hmdSelfie/*=false*/) const {
     return QImage();
 }

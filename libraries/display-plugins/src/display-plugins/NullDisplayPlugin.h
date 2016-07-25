@@ -20,7 +20,7 @@ public:
     virtual bool hasFocus() const override;
     virtual void submitSceneTexture(uint32_t frameIndex, const gpu::TexturePointer& sceneTexture) override;
     virtual void submitOverlayTexture(const gpu::TexturePointer& overlayTexture) override;
-    virtual QImage getScreenshot() const override;
+    virtual QImage getScreenshot(bool hmdSelfie=false) const override;
 private:
     static const QString NAME;
 };

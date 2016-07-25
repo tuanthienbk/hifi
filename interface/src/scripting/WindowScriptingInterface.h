@@ -54,12 +54,17 @@ public slots:
     QScriptValue browse(const QString& title = "", const QString& directory = "",  const QString& nameFilter = "");
     QScriptValue save(const QString& title = "", const QString& directory = "",  const QString& nameFilter = "");
     void copyToClipboard(const QString& text);
+    void takeSnapshot();
+    void prepareForSelfie();
+    void takeSelfie();
 
 signals:
     void domainChanged(const QString& domainHostname);
     void svoImportRequested(const QString& url);
     void domainConnectionRefused(const QString& reasonMessage, int reasonCode);
     void snapshotTaken(const QString& path);
+    void selfiePrepared();
+    void selfieTaken(const QString& path);
 
 private slots:
     WebWindowClass* doCreateWebWindow(const QString& title, const QString& url, int width, int height);

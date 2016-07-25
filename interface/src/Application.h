@@ -312,6 +312,10 @@ public slots:
     void rotationModeChanged() const;
 
     static void runTests();
+    
+    void takeSnapshot();
+    void prepareForSelfie();
+    void takeSelfie();
 
 private slots:
     void showDesktop();
@@ -372,8 +376,6 @@ private:
     void renderRearViewMirror(RenderArgs* renderArgs, const QRect& region, bool isZoomed);
 
     int sendNackPackets();
-
-    void takeSnapshot();
 
     MyAvatar* getMyAvatar() const;
 
@@ -473,6 +475,8 @@ private:
     float _scaleMirror;
     float _rotateMirror;
     float _raiseMirror;
+    float _tiltMirror;  
+    CameraMode _previousCameraMode;
 
     QSet<int> _keysPressed;
 

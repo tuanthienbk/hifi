@@ -532,7 +532,20 @@ function onSnapshotTaken(path) {
         path: Script.resolvePath("file:///" + path),
         aspectRatio: Window.innerWidth / Window.innerHeight
     }
-    createNotification(wordWrap("Snapshot saved to " + path), NotificationType.SNAPSHOT, imageProperties);
+    Script.setTimeout(function() {
+        createNotification(wordWrap("Snapshot saved to " + path), NotificationType.SNAPSHOT, imageProperties);
+    }, 5000);
+}
+
+function onSelfieTaken(path) {
+    var imageProperties = {
+        path: Script.resolvePath("file:///" + path),
+        aspectRatio: Window.innerWidth / Window.innerHeight
+    }
+    Script.setTimeout(function() {
+        createNotification(wordWrap("Selfie saved to " + path), NotificationType.SNAPSHOT, imageProperties);
+    }, 5000);
+
 }
 
 //  handles mouse clicks on buttons
@@ -637,5 +650,5 @@ Script.scriptEnding.connect(scriptEnding);
 Menu.menuItemEvent.connect(menuItemEvent);
 Window.domainConnectionRefused.connect(onDomainConnectionRefused);
 Window.snapshotTaken.connect(onSnapshotTaken);
-
+Window.selfieTaken.connect(onSelfieTaken);
 setup();

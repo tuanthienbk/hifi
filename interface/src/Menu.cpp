@@ -245,6 +245,12 @@ Menu::Menu() {
         false, qApp, SLOT(cameraMenuChanged()),
         UNSPECIFIED_POSITION, "Advanced"));
 
+    // View > Selfie [advanced]
+    cameraModeGroup->addAction(addCheckableActionToQMenuAndActionHash(viewMenu,
+        MenuOption::Selfie, 0,
+        false, qApp, SLOT(cameraMenuChanged()),
+        UNSPECIFIED_POSITION, "Advanced"));
+    
     viewMenu->addSeparator();
 
     // View > Mini Mirror

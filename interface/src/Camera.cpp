@@ -30,6 +30,8 @@ CameraMode stringToMode(const QString& mode) {
         return CAMERA_MODE_INDEPENDENT;
     } else if (mode == "entity") {
         return CAMERA_MODE_ENTITY;
+    } else if (mode == "selfie") {
+        return CAMERA_MODE_SELFIE;
     }
     return CAMERA_MODE_NULL;
 }
@@ -45,6 +47,8 @@ QString modeToString(CameraMode mode) {
         return "independent";
     } else if (mode == CAMERA_MODE_ENTITY) {
         return "entity";
+    } else if (mode == CAMERA_MODE_SELFIE) {
+        return "selfie";
     }
     return "unknown";
 }
@@ -135,6 +139,9 @@ void Camera::setModeString(const QString& mode) {
             break;
         case CAMERA_MODE_ENTITY:
             Menu::getInstance()->setIsOptionChecked(MenuOption::CameraEntityMode, true);
+            break;
+        case CAMERA_MODE_SELFIE:
+            Menu::getInstance()->setIsOptionChecked(MenuOption::Selfie, true);
             break;
         default:
             break;
