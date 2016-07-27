@@ -9,7 +9,7 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 //
 
-var HMD_SELFIE_TIMEOUT = 1000; // 5000ms
+var HMD_SELFIE_TIMEOUT = 1000; // 1000ms
 
 var toolBar = Toolbars.getToolbar("com.highfidelity.interface.toolbar.system");
 

@@ -85,7 +85,7 @@ var NOTIFICATION_MENU_ITEM_POST = " Notifications";
 var PLAY_NOTIFICATION_SOUNDS_SETTING = "play_notification_sounds";
 var PLAY_NOTIFICATION_SOUNDS_TYPE_SETTING_PRE = "play_notification_sounds_type_";
 var lodTextID = false;
-
+var SELFIE_NOTIFICATION_DELAY = 5000; // 5000ms  This is temporary!
 var NotificationType = {
     UNKNOWN: 0,
     MUTE_TOGGLE: 1,
@@ -534,7 +534,7 @@ function onSnapshotTaken(path) {
     }
     Script.setTimeout(function() {
         createNotification(wordWrap("Snapshot saved to " + path), NotificationType.SNAPSHOT, imageProperties);
-    }, 5000);
+    }, SELFIE_NOTIFICATION_DELAY);
 }
 
 function onSelfieTaken(path) {
@@ -544,7 +544,7 @@ function onSelfieTaken(path) {
     }
     Script.setTimeout(function() {
         createNotification(wordWrap("Selfie saved to " + path), NotificationType.SNAPSHOT, imageProperties);
-    }, 5000);
+    }, SELFIE_NOTIFICATION_DELAY);
 
 }
 
