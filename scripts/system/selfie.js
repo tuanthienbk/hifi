@@ -15,7 +15,7 @@ var toolBar = Toolbars.getToolbar("com.highfidelity.interface.toolbar.system");
 
 var button = toolBar.addButton({
     objectName: "selfie",
-    imageURL: Script.resolvePath("assets/images/tools/directory.svg"),
+    imageURL: Script.resolvePath("assets/images/tools/snap.svg"),
     visible: true,
     buttonState: 1,
     defaultState: 1,
