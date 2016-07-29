@@ -2299,7 +2299,7 @@ void Application::keyPressEvent(QKeyEvent* event) {
                 } else if (isOption && !isShifted && !isMeta) {
                     Menu::getInstance()->triggerOption(MenuOption::ScriptEditor);
                 } else if (!isOption && !isShifted && isMeta) {
-                    takeSnapshot();
+                    takeSnapshot(true);
                 }
                 break;
 
@@ -5110,7 +5110,7 @@ void Application::prepareForSelfie() {
     emit DependencyManager::get<WindowScriptingInterface>()->selfiePrepared();
 }
 
-void Application::takeSelfie() {
+void Application::takeSelfie(bool notify) {
     // just take a snapshot, since we assume 
     // the camera is already in selfie mode
     qDebug() << "taking selfie";
@@ -5122,11 +5122,11 @@ void Application::takeSelfie() {
     QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot(isHMDMode()));
     _myCamera.setMode(_previousCameraMode);
 
-    emit DependencyManager::get<WindowScriptingInterface>()->selfieTaken(path);
+    emit DependencyManager::get<WindowScriptingInterface>()->selfieTaken(path, notify);
 
 }
 
-void Application::takeSnapshot() {
+void Application::takeSnapshot(bool notify) {
     qDebug() << "taking snapshot";
     QMediaPlayer* player = new QMediaPlayer();
     QFileInfo inf = QFileInfo(PathUtils::resourcesPath() + "sounds/snap.wav");
@@ -5135,7 +5135,7 @@ void Application::takeSnapshot() {
 
     QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot(isHMDMode()));
 
-    emit DependencyManager::get<WindowScriptingInterface>()->snapshotTaken(path);
+    emit DependencyManager::get<WindowScriptingInterface>()->snapshotTaken(path, notify);
 }
 
 float Application::getRenderResolutionScale() const {

@@ -313,9 +313,9 @@ public slots:
 
     static void runTests();
     
-    void takeSnapshot();
+    void takeSnapshot(bool notify);
     void prepareForSelfie();
-    void takeSelfie();
+    void takeSelfie(bool notify);
 
 private slots:
     void showDesktop();

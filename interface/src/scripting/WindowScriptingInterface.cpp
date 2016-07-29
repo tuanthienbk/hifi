@@ -69,10 +69,10 @@ QScriptValue WindowScriptingInterface::hasFocus() {
     return qApp->hasFocus();
 }
 
-void WindowScriptingInterface::takeSnapshot() {
-    // it is evil to call takeSnapshot from just any thread.
-    qApp->postLambdaEvent([] {
-        qApp->takeSnapshot();
+void WindowScriptingInterface::takeSnapshot(bool notify/*=true*/) {
+    // it is evil to call takeSnapshot from just any thread
+	qApp->postLambdaEvent([&] {
+        qApp->takeSnapshot(notify);
     });
 }
 
@@ -82,9 +82,9 @@ void WindowScriptingInterface::prepareForSelfie() {
     });
 }
 
-void WindowScriptingInterface::takeSelfie() {
-    qApp->postLambdaEvent([] {
-        qApp->takeSelfie();
+void WindowScriptingInterface::takeSelfie(bool notify/*=true*/) {
+    qApp->postLambdaEvent([&] {
+        qApp->takeSelfie(notify);
     });
 }
 

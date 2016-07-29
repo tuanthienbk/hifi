@@ -527,25 +527,24 @@ function onDomainConnectionRefused(reason) {
     createNotification("Connection refused: " + reason, NotificationType.CONNECTION_REFUSED);
 }
 
-function onSnapshotTaken(path) {
-    var imageProperties = {
-        path: Script.resolvePath("file:///" + path),
-        aspectRatio: Window.innerWidth / Window.innerHeight
-    }
-    Script.setTimeout(function() {
+function onSnapshotTaken(path, notify) {
+    if (notify) {
+        var imageProperties = {
+            path: Script.resolvePath("file:///" + path),
+            aspectRatio: Window.innerWidth / Window.innerHeight
+        }
         createNotification(wordWrap("Snapshot saved to " + path), NotificationType.SNAPSHOT, imageProperties);
-    }, SELFIE_NOTIFICATION_DELAY);
+    }
 }
 
-function onSelfieTaken(path) {
-    var imageProperties = {
-        path: Script.resolvePath("file:///" + path),
-        aspectRatio: Window.innerWidth / Window.innerHeight
-    }
-    Script.setTimeout(function() {
+function onSelfieTaken(path, notify) {
+    if (notify) {
+        var imageProperties = {
+            path: Script.resolvePath("file:///" + path),
+            aspectRatio: Window.innerWidth / Window.innerHeight
+        }
         createNotification(wordWrap("Selfie saved to " + path), NotificationType.SNAPSHOT, imageProperties);
-    }, SELFIE_NOTIFICATION_DELAY);
-
+    }
 }
 
 //  handles mouse clicks on buttons
