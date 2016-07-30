@@ -1816,20 +1816,8 @@ void Application::paintGL() {
                 }
             }
         } else if (_myCamera.getMode() == CAMERA_MODE_SELFIE) {
-            auto mirrorBodyOrientation = myAvatar->getWorldAlignedOrientation() * glm::quat(glm::vec3(-1*_tiltMirror, PI + _rotateMirror, 0.0f));
-            glm::vec3 hmdOffset(0.0f, 0.0f, 0.0f);
-            if(isHMDMode()) {
-                hmdOffset = extractTranslation(myAvatar->getHMDSensorMatrix());
-                hmdOffset.x = -hmdOffset.x;
-            }
-            _myCamera.setOrientation(mirrorBodyOrientation);
-            // moving 3x the mirror distance is completely random.  Perhaps best to come up with a
-            // distance for now
-            _myCamera.setPosition(myAvatar->getDefaultEyePosition()
-                + glm::vec3(0, _raiseMirror * myAvatar->getUniformScale(), 0)
-                + (myAvatar->getOrientation() * glm::quat(glm::vec3(_tiltMirror, _rotateMirror, 0.0f))) *
-                glm::vec3(0.0f, 0.0f, -1.0f) * 5.0f * MIRROR_FULLSCREEN_DISTANCE * _scaleMirror + 
-                mirrorBodyOrientation * hmdOffset);
+            /* I will eliminate this shortly.  Intent is to have the camera
+             * set initially and not move with the avatar */
             renderArgs._renderMode = RenderArgs::MIRROR_RENDER_MODE;
         }
         // Update camera position
@@ -2323,11 +2311,9 @@ void Application::keyPressEvent(QKeyEvent* event) {
                 break;
 
             case Qt::Key_Up:
-                if (_myCamera.getMode() == CAMERA_MODE_MIRROR || _myCamera.getMode() == CAMERA_MODE_SELFIE) {
+                if (_myCamera.getMode() == CAMERA_MODE_MIRROR) {
                     if (!isShifted) {
                         _scaleMirror *= 0.95f;
-                    } else if (isMeta) {
-                        _tiltMirror +=  0.05f;
                     } else {
                         _raiseMirror += 0.05f;
                     }
@@ -2335,11 +2321,9 @@ void Application::keyPressEvent(QKeyEvent* event) {
                 break;
 
             case Qt::Key_Down:
-                if (_myCamera.getMode() == CAMERA_MODE_MIRROR || _myCamera.getMode() == CAMERA_MODE_SELFIE) {
+                if (_myCamera.getMode() == CAMERA_MODE_MIRROR) {
                     if (!isShifted) {
                         _scaleMirror *= 1.05f;
-                    } else if (isMeta) {
-                        _tiltMirror -= 0.05f;
                     } else {
                         _raiseMirror -= 0.05f;
                     }
@@ -2347,13 +2331,13 @@ void Application::keyPressEvent(QKeyEvent* event) {
                 break;
 
             case Qt::Key_Left:
-                if (_myCamera.getMode() == CAMERA_MODE_MIRROR || _myCamera.getMode() == CAMERA_MODE_SELFIE) {
+                if (_myCamera.getMode() == CAMERA_MODE_MIRROR) {
                     _rotateMirror += PI / 20.0f;
                 }
                 break;
 
             case Qt::Key_Right:
-                if (_myCamera.getMode() == CAMERA_MODE_MIRROR || _myCamera.getMode() == CAMERA_MODE_SELFIE) {
+                if (_myCamera.getMode() == CAMERA_MODE_MIRROR) {
                     _rotateMirror -= PI / 20.0f;
                 }
                 break;
@@ -3465,10 +3449,6 @@ void Application::cameraMenuChanged() {
         if (_myCamera.getMode() != CAMERA_MODE_MIRROR) {
             _myCamera.setMode(CAMERA_MODE_MIRROR);
         }
-    } else if (Menu::getInstance()->isOptionChecked(MenuOption::Selfie)) {
-        if (_myCamera.getMode() != CAMERA_MODE_SELFIE) {
-            _myCamera.setMode(CAMERA_MODE_SELFIE);
-        }
     } else if (Menu::getInstance()->isOptionChecked(MenuOption::FirstPerson)) {
         if (_myCamera.getMode() != CAMERA_MODE_FIRST_PERSON) {
             _myCamera.setMode(CAMERA_MODE_FIRST_PERSON);
@@ -3680,7 +3660,6 @@ void Application::update(float deltaTime) {
     auto worldToSensorMatrix = glm::inverse(myAvatar->getSensorToWorldMatrix());
     auto avatarToSensorMatrix = worldToSensorMatrix * myAvatarMatrix;
     myAvatar->setHandControllerPosesInSensorFrame(leftHandPose.transform(avatarToSensorMatrix), rightHandPose.transform(avatarToSensorMatrix));
-
     updateThreads(deltaTime); // If running non-threaded, then give the threads some time to process...
     updateDialogs(deltaTime); // update various stats dialogs if present
 
@@ -5103,6 +5082,22 @@ void Application::prepareForSelfie() {
 
     _tiltMirror = SELFIE_INITIAL_CAMERA_TILT;
 
+    auto myAvatar = getMyAvatar();
+    auto mirrorBodyOrientation = myAvatar->getWorldAlignedOrientation() * glm::quat(glm::vec3(-1*_tiltMirror, PI + _rotateMirror, 0.0f));
+    glm::vec3 hmdOffset(0.0f, 0.0f, 0.0f);
+    if(isHMDMode()) {
+        hmdOffset = extractTranslation(myAvatar->getHMDSensorMatrix());
+        hmdOffset.x = -hmdOffset.x;
+    }
+    _myCamera.setOrientation(mirrorBodyOrientation);
+    // moving 3x the mirror distance is completely random.  Perhaps best to come up with a
+    // distance for now
+    _myCamera.setPosition(myAvatar->getDefaultEyePosition()
+            + glm::vec3(0, _raiseMirror * myAvatar->getUniformScale(), 0)
+            + (myAvatar->getOrientation() * glm::quat(glm::vec3(_tiltMirror, _rotateMirror, 0.0f))) *
+            glm::vec3(0.0f, 0.0f, -1.0f) * 5.0f * MIRROR_FULLSCREEN_DISTANCE * _scaleMirror + 
+            mirrorBodyOrientation * hmdOffset);
+    
     // change camera mode
     _myCamera.setMode(CAMERA_MODE_SELFIE);
 
@@ -5119,7 +5114,7 @@ void Application::takeSelfie(bool notify) {
     player->setMedia(QUrl::fromLocalFile(inf.absoluteFilePath()));
     player->play();
 
-    QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot(isHMDMode()));
+    QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot());
     _myCamera.setMode(_previousCameraMode);
 
     emit DependencyManager::get<WindowScriptingInterface>()->selfieTaken(path, notify);
@@ -5133,7 +5128,7 @@ void Application::takeSnapshot(bool notify) {
     player->setMedia(QUrl::fromLocalFile(inf.absoluteFilePath()));
     player->play();
 
-    QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot(isHMDMode()));
+    QString path = Snapshot::saveSnapshot(getActiveDisplayPlugin()->getScreenshot());
 
     emit DependencyManager::get<WindowScriptingInterface>()->snapshotTaken(path, notify);
 }

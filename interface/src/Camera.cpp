@@ -140,9 +140,6 @@ void Camera::setModeString(const QString& mode) {
         case CAMERA_MODE_ENTITY:
             Menu::getInstance()->setIsOptionChecked(MenuOption::CameraEntityMode, true);
             break;
-        case CAMERA_MODE_SELFIE:
-            Menu::getInstance()->setIsOptionChecked(MenuOption::Selfie, true);
-            break;
         default:
             break;
     }

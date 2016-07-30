@@ -660,10 +660,10 @@ void OpenGLDisplayPlugin::withMainThreadContext(std::function<void()> f) const {
 #endif
 }
 
-QImage OpenGLDisplayPlugin::getScreenshot(bool hmdSelfie/*=false*/) const {
+QImage OpenGLDisplayPlugin::getScreenshot() const {
     using namespace oglplus;
     int width = _compositeFramebuffer->size.x;
-    if(hmdSelfie) {
+    if(isHmd()) {
         width /= 2;
     }
     QImage screenshot(width, _compositeFramebuffer->size.y, QImage::Format_RGBA8888);

@@ -55,7 +55,7 @@ public:
         return getSurfaceSize();
     }
 
-    QImage getScreenshot(bool hmdSelfie=false) const override;
+    QImage getScreenshot() const override;
 
     float presentRate() const override;
 
