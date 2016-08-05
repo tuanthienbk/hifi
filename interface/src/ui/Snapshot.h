@@ -32,6 +32,14 @@ private:
     QUrl _URL;
 };
 
+
+class SnapshotUploader: public QObject {
+    Q_OBJECT
+public:
+    void uploadSuccess(QNetworkReply& reply);
+    void uploadFailure(QNetworkReply& reply);
+};
+
 class Snapshot {
 public:
     static QString saveSnapshot(QImage image);
@@ -40,6 +48,7 @@ public:
 
     static Setting::Handle<QString> snapshotsLocation;
     static Setting::Handle<bool> hasSetSnapshotsLocation;
+    static void uploadSnapshot(QString& filename);
 private:
     static QFile* savedFileForSnapshot(QImage & image, bool isTemporary);
 };

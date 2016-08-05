@@ -141,3 +141,45 @@ QFile* Snapshot::savedFileForSnapshot(QImage & shot, bool isTemporary) {
         return imageTempFile;
     }
 }
+
+void Snapshot::uploadSnapshot(QString& filename) {
+
+    const QString SNAPSHOT_UPLOAD_URL = "/api/v1/snapshots";
+    static SnapshotUploader uploader;
+
+    QFile* file = new QFile(filename);
+    Q_ASSERT(file->exists());
+    file->open(QIODevice::ReadOnly);
+
+    QHttpPart imagePart;
+    imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
+    imagePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                        QVariant("form-data; name=\"image\"; filename=\"" + file->fileName() + "\""));
+    imagePart.setBodyDevice(file);
+    
+    QHttpMultiPart* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    file->setParent(multiPart); // we cannot delete the file now, so delete it with the multiPart
+    multiPart->append(imagePart);
+    
+    auto accountManager = DependencyManager::get<AccountManager>();
+    JSONCallbackParameters callbackParams;
+    callbackParams.jsonCallbackReceiver = &uploader;
+    callbackParams.jsonCallbackMethod = "uploadSuccess";
+    callbackParams.errorCallbackReceiver = &uploader;
+    callbackParams.errorCallbackMethod = "uploadFailure;
+
+    accountManager->sendRequest(SNAPSHOT_UPLOAD_URL,
+                                AccountManagerAuth::Required,
+                                QNetworkAccessManager::PostOperation,
+                                callbackParams,
+                                nullptr,
+                                multiPart);
+}
+
+void SnapshotUploader::uploadSuccess(QNetworkReply& reply) {
+    
+}
+
+void SnapshotUploader::uploadFailure(QNetworkReply& reply) {
+
+}
