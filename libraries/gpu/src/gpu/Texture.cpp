@@ -775,8 +775,8 @@ bool sphericalHarmonicsFromTexture(const gpu::Texture& cubeTexture, std::vector<
                 dir = glm::normalize(dir);
 
                 // scale factor depending on distance from center of the face
-                const float fDiffSolid = 4.0f / ((1.0f + fU*fU + fV*fV) *
-                                            sqrtf(1.0f + fU*fU + fV*fV));
+                const float factor = 1.f + fU*fU + fV*fV;
+                const float fDiffSolid = 4.0f - 6*factor + 7.5f*factor*factor;
                 fWt += fDiffSolid;
 
                 // calculate coefficients of spherical harmonics for current direction
@@ -823,10 +823,172 @@ bool sphericalHarmonicsFromTexture(const gpu::Texture& cubeTexture, std::vector<
     return true;
 }
 
+bool sphericalHarmonicsFromTexture2(const gpu::Texture& cubeTexture, std::vector<glm::vec3> & output, const uint order) {
+    const uint sqOrder = order*order;
+
+    // allocate memory for calculations
+    output.resize(sqOrder);
+    std::vector<float> resultR(sqOrder);
+    std::vector<float> resultG(sqOrder);
+    std::vector<float> resultB(sqOrder);
+
+    int width, height;
+
+    // initialize values
+    float fWt = 0.0f;
+    for(uint i=0; i < sqOrder; i++) {
+        output[i] = glm::vec3(0.0f);
+        resultR[i] = 0.0f;
+        resultG[i] = 0;
+        resultB[i] = 0;
+    }
+    std::vector<float> shBuff(sqOrder);
+    std::vector<float> shBuffB(sqOrder);
+    // get width and height
+    width = height = cubeTexture.getWidth();
+    if(width != height) {
+        return false;
+    }
+
+    // for each face of cube texture
+    for(int face=0; face < gpu::Texture::NUM_CUBE_FACES; face++) {
+
+        auto numComponents = cubeTexture.accessStoredMipFace(0,face)->getFormat().getScalarCount();
+        auto data = cubeTexture.accessStoredMipFace(0,face)->readData();
+        if (data == nullptr) {
+            continue;
+        }
+
+        const float w[] = {0.0556685671161737, 0.1255803694649046, 0.1862902109277343, 0.2331937645919905, 0.2628045445102467, 0.2729250867779006, 
+            0.2628045445102467, 0.2331937645919905, 0.1862902109277343, 0.1255803694649046, 0.0556685671161737};
+        const float x[] = {-0.9782286581460570, -0.8870625997680953, -0.7301520055740494, -0.5190961292068118, -0.2695431559523450, 0.0,
+            0.2695431559523450, 0.5190961292068118, 0.7301520055740494, 0.8870625997680953, 0.9782286581460570};
+        const int nG = 11;    
+        const int R = 4; 
+        
+        for(int i=0; i < nG; i++) {
+            // texture coordinate V in range [-1 to 1]
+            const float fV = x[i];
+            // map to data space
+            const int y0 = int(width*fV + width)/2;
+
+            for(int j=0; j < nG; j++) {
+                // texture coordinate U in range [-1 to 1]
+                const float fU = x[j];
+                // map to data space
+                const int x0 = int(width*fU + width)/2;
+                // determine direction from center of cube texture to current texel
+                glm::vec3 dir;
+                switch(face) {
+                case gpu::Texture::CUBE_FACE_RIGHT_POS_X: {
+                    dir.x = 1.0f;
+                    dir.y = fV;
+                    dir.z = fU;
+                    dir = -dir;
+                    break;
+                }
+                case gpu::Texture::CUBE_FACE_LEFT_NEG_X: {
+                    dir.x = -1.0f;
+                    dir.y = fV;
+                    dir.z = -fU;
+                    dir = -dir;
+                    break;
+                }
+                case gpu::Texture::CUBE_FACE_TOP_POS_Y: {
+                    dir.x = - fU;
+                    dir.y = 1.0f;
+                    dir.z = - fV;
+                    dir = -dir;
+                    break;
+                }
+                case gpu::Texture::CUBE_FACE_BOTTOM_NEG_Y: {
+                    dir.x = - fU;
+                    dir.y = - 1.0f;
+                    dir.z = fV;
+                    dir = -dir;
+                    break;
+                }
+                case gpu::Texture::CUBE_FACE_BACK_POS_Z: {
+                    dir.x = - fU;
+                    dir.y = fV;
+                    dir.z = 1.0f;
+                    break;
+                }
+                case gpu::Texture::CUBE_FACE_FRONT_NEG_Z: {
+                    dir.x = fU;
+                    dir.y = fV;
+                    dir.z = - 1.0f;
+                    break;
+                }
+                default:
+                    return false;
+                }
+
+                // normalize direction
+                dir = glm::normalize(dir);
+
+                // scale factor depending on distance from center of the face
+                
+                const float fDiffSolid = 4.0f*w[i]*w[j]/ ((1.0f + fU*fU + fV*fV) *sqrtf(1.0f + fU*fU + fV*fV));
+                
+                fWt += fDiffSolid;
+
+                // calculate coefficients of spherical harmonics for current direction
+                sphericalHarmonicsEvaluateDirection(shBuff.data(), order, dir);
+
+                // index of texel in texture
+                glm::vec3 clr(0,0,0);
+                for (int x = x0-R;  x <= x0 + R; x++) {
+                    for (int y = y0-R; y <= y0 + R; y++)
+                    {
+                        int pixOffsetIndex = (x + y * width) * numComponents;
+                        if (pixOffsetIndex >= 0) {
+                            // get color from texture and map to range [0, 1]
+                            glm::vec3 clr_t(ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex]),
+                                  ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex + 1]),
+                                  ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex + 2]));
+                            clr += clr_t;    
+                        }
+                    }
+                    
+                }    
+                // scale color and add to previously accumulated coefficients
+                sphericalHarmonicsScale(shBuffB.data(), order,
+                        shBuff.data(), clr.r * fDiffSolid);
+                sphericalHarmonicsAdd(resultR.data(), order,
+                        resultR.data(), shBuffB.data());
+                sphericalHarmonicsScale(shBuffB.data(), order,
+                        shBuff.data(), clr.g * fDiffSolid);
+                sphericalHarmonicsAdd(resultG.data(), order,
+                        resultG.data(), shBuffB.data());
+                sphericalHarmonicsScale(shBuffB.data(), order,
+                        shBuff.data(), clr.b * fDiffSolid);
+                sphericalHarmonicsAdd(resultB.data(), order,
+                        resultB.data(), shBuffB.data());
+            }
+        }
+    }
+
+    // final scale for coefficients
+    const float fNormProj = (4.0f * glm::pi<float>()) / fWt;
+    sphericalHarmonicsScale(resultR.data(), order, resultR.data(), fNormProj);
+    sphericalHarmonicsScale(resultG.data(), order, resultG.data(), fNormProj);
+    sphericalHarmonicsScale(resultB.data(), order, resultB.data(), fNormProj);
+
+    // save result
+    for(uint i=0; i < sqOrder; i++) {
+        // gamma Correct
+        // output[i] = linearTosRGB(glm::vec3(resultR[i], resultG[i], resultB[i]));
+        output[i] = glm::vec3(resultR[i], resultG[i], resultB[i]);
+    }
+
+    return true;
+}
+
 void SphericalHarmonics::evalFromTexture(const Texture& texture) {
     if (texture.isDefined()) {
         std::vector< glm::vec3 > coefs;
-        sphericalHarmonicsFromTexture(texture, coefs, 3);
+        sphericalHarmonicsFromTexture2(texture, coefs, 3);
 
         L00 = coefs[0];
         L1m1 = coefs[1];
