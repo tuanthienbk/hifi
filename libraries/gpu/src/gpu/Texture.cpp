@@ -776,7 +776,7 @@ bool sphericalHarmonicsFromTexture(const gpu::Texture& cubeTexture, std::vector<
 
                 // scale factor depending on distance from center of the face
                 const float factor = 1.f + fU*fU + fV*fV;
-                const float fDiffSolid = 4.0f - 6*factor + 7.5f*factor*factor;
+                const float fDiffSolid = 4.0f - 6.0f*factor + 7.5f*factor*factor;
                 fWt += fDiffSolid;
 
                 // calculate coefficients of spherical harmonics for current direction
@@ -859,10 +859,10 @@ bool sphericalHarmonicsFromTexture2(const gpu::Texture& cubeTexture, std::vector
             continue;
         }
 
-        const float w[] = {0.0556685671161737, 0.1255803694649046, 0.1862902109277343, 0.2331937645919905, 0.2628045445102467, 0.2729250867779006, 
-            0.2628045445102467, 0.2331937645919905, 0.1862902109277343, 0.1255803694649046, 0.0556685671161737};
-        const float x[] = {-0.9782286581460570, -0.8870625997680953, -0.7301520055740494, -0.5190961292068118, -0.2695431559523450, 0.0,
-            0.2695431559523450, 0.5190961292068118, 0.7301520055740494, 0.8870625997680953, 0.9782286581460570};
+        const float w[] = {0.0556685671161737f, 0.1255803694649046f, 0.1862902109277343f, 0.2331937645919905f, 0.2628045445102467f, 0.2729250867779006f, 
+            0.2628045445102467f, 0.2331937645919905f, 0.1862902109277343f, 0.1255803694649046f, 0.0556685671161737f};
+        const float x[] = {-0.9782286581460570f, -0.8870625997680953f, -0.7301520055740494f, -0.5190961292068118f, -0.2695431559523450f, 0.0f,
+            0.2695431559523450f, 0.5190961292068118f, 0.7301520055740494f, 0.8870625997680953f, 0.9782286581460570f};
         const int nG = 11;    
         const int R = 4; 
         
@@ -942,16 +942,17 @@ bool sphericalHarmonicsFromTexture2(const gpu::Texture& cubeTexture, std::vector
                     for (int y = y0-R; y <= y0 + R; y++)
                     {
                         int pixOffsetIndex = (x + y * width) * numComponents;
-                        if (pixOffsetIndex >= 0) {
+                        if (pixOffsetIndex >= 0 && pixOffsetIndex < width) {
                             // get color from texture and map to range [0, 1]
                             glm::vec3 clr_t(ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex]),
                                   ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex + 1]),
                                   ColorUtils::sRGB8ToLinearFloat(data[pixOffsetIndex + 2]));
                             clr += clr_t;    
                         }
-                    }
-                    
-                }    
+                    }                    
+                }
+                clr /= (2*R+1)*(2*R+1);
+
                 // scale color and add to previously accumulated coefficients
                 sphericalHarmonicsScale(shBuffB.data(), order,
                         shBuff.data(), clr.r * fDiffSolid);
