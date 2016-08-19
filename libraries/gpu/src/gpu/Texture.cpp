@@ -951,7 +951,7 @@ bool sphericalHarmonicsFromTexture2(const gpu::Texture& cubeTexture, std::vector
                         }
                     }                    
                 }
-                clr /= (2*R+1)*(2*R+1);
+                clr /= (2.0f*R+1.0f)*(2.0f*R+1.0f);
 
                 // scale color and add to previously accumulated coefficients
                 sphericalHarmonicsScale(shBuffB.data(), order,
